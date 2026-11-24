@@ -14,7 +14,7 @@
         <a class="nav-link" href="{{ other_url }}/">{{ other_name }} <span aria-hidden="true">↗</span></a>
         {% if user %}
           <span class="account-pill">● {{ user.username }}</span>
-          <form method="post" action="/logout"><button class="btn btn-outline" type="submit">Déconnexion locale</button></form>
+          <form method="post" action="/logout"><button class="btn btn-outline" type="submit">Déconnexion complète</button></form>
         {% else %}
           <a href="/login" class="btn btn-main">Se connecter</a>
         {% endif %}

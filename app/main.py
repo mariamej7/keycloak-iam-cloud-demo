@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import os
 from pathlib import Path
+from urllib.parse import urlencode
 
 from authlib.integrations.starlette_client import OAuth, OAuthError
 from dotenv import load_dotenv
@@ -97,6 +98,10 @@ async def login(request: Request):
 
 @app.get('/auth/callback')
 async def auth_callback(request: Request):
+    # Le client OIDC utilise le meme callback autorise pour la fin de deconnexion.
+    # Le state de deconnexion est distinct du state aleatoire du login.
+    if request.query_params.get('state') == 'logout-complete' and not request.query_params.get('code'):
+        return RedirectResponse('/', status_code=303)
     try:
         token = await oauth.keycloak.authorize_access_token(request)
         # Authlib a validé l'ID token OIDC (signature / issuer / audience / nonce).
@@ -120,9 +125,16 @@ async def auth_callback(request: Request):
 
 @app.post('/logout')
 async def logout(request: Request):
-    # Déconnexion locale seulement ; la session SSO de Keycloak peut rester active.
+    # Efface la session applicative, puis ferme la session SSO sur Keycloak.
+    # Keycloak peut demander une confirmation avant de revenir au portail.
     request.session.clear()
-    return RedirectResponse('/', status_code=303)
+    params = urlencode({
+        'client_id': CONFIG['client_id'],
+        'post_logout_redirect_uri': f'{BASE_URL}/auth/callback',
+        'state': 'logout-complete',
+    })
+    end_session = f'{KEYCLOAK_URL}/realms/{REALM}/protocol/openid-connect/logout'
+    return RedirectResponse(f'{end_session}?{params}', status_code=303)
 
 
 @app.get('/espace/etudiant')

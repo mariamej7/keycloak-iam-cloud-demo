@@ -29,12 +29,15 @@ KEYCLOAK_PID=$!
   done
 
   for username in etudiant professeur admin.universite; do
+    # Ne jamais journaliser la valeur du mot de passe.
     if /opt/keycloak/bin/kcadm.sh set-password \
       --realm universite --username "$username" \
-      --new-password "$DEMO_SHARED_PASSWORD" >/dev/null 2>&1; then
+      --new-password "$DEMO_SHARED_PASSWORD" >/dev/null 2>/tmp/kcadm-demo-error.txt; then
       echo "Mot de passe du compte demo $username configure"
     else
       echo "ERROR: echec configuration du compte demo $username" >&2
+      # Diagnostic sans secrets; kcadm affiche le statut HTTP et non les arguments.
+      sed -E 's/(password|token|secret|authorization)[^ ]*/[redacted]/Ig' /tmp/kcadm-demo-error.txt >&2
     fi
   done
 ) &

@@ -35,7 +35,7 @@
 </section>
 <section class="bottom-grid">
   <div class="info-box"><span class="section-kicker">DÉMONSTRATION SSO</span><h3>Deux applications, une connexion</h3><p>Connectez-vous ici, puis ouvrez l'autre application. Tant que la session SSO Keycloak est active, il n'est normalement pas nécessaire de ressaisir le mot de passe.</p>
-  <a href="http://localhost:{{ other_port }}/" class="text-link">Ouvrir {{ other_name }} ↗</a></div>
+  <a href="{{ other_url }}/" class="text-link">Ouvrir {{ other_name }} ↗</a></div>
   <div class="info-box light"><span class="section-kicker">SÉCURITÉ DES ACCÈS</span><h3>Un refus d'accès est un résultat attendu</h3><p>Connectez-vous avec le compte étudiant, puis essayez l'administration : le serveur répondra avec un statut HTTP 403, même si l'URL a été saisie manuellement.</p></div>
 </section>
 {% endblock %}

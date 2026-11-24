@@ -1,0 +1,129 @@
+# Blueprint independant : 3 nouveaux services Web et 1 nouvelle base PostgreSQL.
+# AUCUN service existant ni depot PFA ne doit etre adopte ou modifie.
+services:
+  - type: web
+    name: iam2026-keycloak-mariam-riad
+    runtime: docker
+    plan: free
+    region: frankfurt
+    autoDeployTrigger: off
+    dockerfilePath: ./cloud/keycloak/Dockerfile
+    dockerContext: .
+    healthCheckPath: /realms/master/.well-known/openid-configuration
+    envVars:
+      - key: KC_DB
+        value: postgres
+      - key: KC_DB_URL_HOST
+        fromDatabase:
+          name: iam2026-keycloak-pg
+          property: host
+      - key: KC_DB_URL_PORT
+        fromDatabase:
+          name: iam2026-keycloak-pg
+          property: port
+      - key: KC_DB_URL_DATABASE
+        fromDatabase:
+          name: iam2026-keycloak-pg
+          property: database
+      - key: KC_DB_USERNAME
+        fromDatabase:
+          name: iam2026-keycloak-pg
+          property: user
+      - key: KC_DB_PASSWORD
+        fromDatabase:
+          name: iam2026-keycloak-pg
+          property: password
+      - key: KC_BOOTSTRAP_ADMIN_USERNAME
+        value: kcadmin
+      - key: KC_BOOTSTRAP_ADMIN_PASSWORD
+        generateValue: true
+      - key: KC_HTTP_ENABLED
+        value: 'true'
+      - key: KC_HTTP_PORT
+        value: '10000'
+      - key: KC_PROXY_HEADERS
+        value: xforwarded
+      - key: KC_HOSTNAME
+        fromService:
+          name: iam2026-keycloak-mariam-riad
+          type: web
+          envVarKey: RENDER_EXTERNAL_HOSTNAME
+      - key: JAVA_OPTS_KC_HEAP
+        value: '-XX:InitialRAMPercentage=10 -XX:MaxRAMPercentage=45'
+      - key: KC_CACHE
+        value: local
+      - key: CAMPUS_EXTERNAL_HOSTNAME
+        fromService:
+          name: iam2026-campus-mariam-riad
+          type: web
+          envVarKey: RENDER_EXTERNAL_HOSTNAME
+      - key: BIBLIO_EXTERNAL_HOSTNAME
+        fromService:
+          name: iam2026-biblio-mariam-riad
+          type: web
+          envVarKey: RENDER_EXTERNAL_HOSTNAME
+      - key: DEMO_ETUDIANT_PASSWORD
+        generateValue: true
+      - key: DEMO_PROFESSEUR_PASSWORD
+        generateValue: true
+      - key: DEMO_ADMIN_PASSWORD
+        generateValue: true
+
+  - type: web
+    name: iam2026-campus-mariam-riad
+    runtime: python
+    plan: free
+    region: frankfurt
+    autoDeployTrigger: off
+    buildCommand: pip install -r app/requirements.txt
+    startCommand: python -m uvicorn app.main:app --host 0.0.0.0 --port $PORT
+    healthCheckPath: /health
+    envVars:
+      - key: APP_VARIANT
+        value: universite
+      - key: SESSION_SECRET
+        generateValue: true
+      - key: KEYCLOAK_EXTERNAL_HOSTNAME
+        fromService:
+          name: iam2026-keycloak-mariam-riad
+          type: web
+          envVarKey: RENDER_EXTERNAL_HOSTNAME
+      - key: OTHER_APP_HOSTNAME
+        fromService:
+          name: iam2026-biblio-mariam-riad
+          type: web
+          envVarKey: RENDER_EXTERNAL_HOSTNAME
+
+  - type: web
+    name: iam2026-biblio-mariam-riad
+    runtime: python
+    plan: free
+    region: frankfurt
+    autoDeployTrigger: off
+    buildCommand: pip install -r app/requirements.txt
+    startCommand: python -m uvicorn app.main:app --host 0.0.0.0 --port $PORT
+    healthCheckPath: /health
+    envVars:
+      - key: APP_VARIANT
+        value: bibliotheque
+      - key: SESSION_SECRET
+        generateValue: true
+      - key: KEYCLOAK_EXTERNAL_HOSTNAME
+        fromService:
+          name: iam2026-keycloak-mariam-riad
+          type: web
+          envVarKey: RENDER_EXTERNAL_HOSTNAME
+      - key: OTHER_APP_HOSTNAME
+        fromService:
+          name: iam2026-campus-mariam-riad
+          type: web
+          envVarKey: RENDER_EXTERNAL_HOSTNAME
+
+databases:
+  - name: iam2026-keycloak-pg
+    databaseName: iam2026keycloak
+    user: iam2026keycloak
+    plan: free
+    region: frankfurt
+    postgresMajorVersion: '17'
+    ipAllowList: []

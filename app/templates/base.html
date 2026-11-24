@@ -11,7 +11,7 @@
     <header class="nav">
       <a href="/" class="brand"><span class="logo">◆</span><span>{{ config.name }}<small>{{ config.subtitle }}</small></span></a>
       <div class="nav-actions">
-        <a class="nav-link" href="http://localhost:{{ other_port }}/">{{ other_name }} <span aria-hidden="true">↗</span></a>
+        <a class="nav-link" href="{{ other_url }}/">{{ other_name }} <span aria-hidden="true">↗</span></a>
         {% if user %}
           <span class="account-pill">● {{ user.username }}</span>
           <form method="post" action="/logout"><button class="btn btn-outline" type="submit">Déconnexion locale</button></form>
@@ -23,7 +23,7 @@
     <main>{% block content %}{% endblock %}</main>
     <footer>
       <span>Projet de démonstration IAM · Keycloak · OIDC · Cloud</span>
-      <span>Environnement local de formation — comptes fictifs</span>
+      <span>{{ 'Environnement Cloud pédagogique — comptes fictifs' if cloud_mode else 'Environnement local de formation — comptes fictifs' }}</span>
     </footer>
   </div>
 </body>

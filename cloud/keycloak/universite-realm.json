@@ -1,0 +1,158 @@
+{
+  "realm": "universite",
+  "enabled": true,
+  "displayName": "Université Démo — Connexion sécurisée",
+  "registrationAllowed": false,
+  "resetPasswordAllowed": false,
+  "loginWithEmailAllowed": false,
+  "duplicateEmailsAllowed": false,
+  "rememberMe": false,
+  "verifyEmail": false,
+  "sslRequired": "external",
+  "roles": {
+    "realm": [
+      {
+        "name": "ETUDIANT",
+        "description": "Accès démo etudiant"
+      },
+      {
+        "name": "PROFESSEUR",
+        "description": "Accès démo professeur"
+      },
+      {
+        "name": "ADMIN",
+        "description": "Accès démo admin"
+      }
+    ]
+  },
+  "clients": [
+    {
+      "clientId": "portail-universite",
+      "name": "Application demo portail-universite",
+      "enabled": true,
+      "protocol": "openid-connect",
+      "publicClient": true,
+      "standardFlowEnabled": true,
+      "implicitFlowEnabled": false,
+      "directAccessGrantsEnabled": false,
+      "serviceAccountsEnabled": false,
+      "redirectUris": [
+        "https://${CAMPUS_EXTERNAL_HOSTNAME}/auth/callback"
+      ],
+      "webOrigins": [
+        "https://${CAMPUS_EXTERNAL_HOSTNAME}"
+      ],
+      "attributes": {
+        "pkce.code.challenge.method": "S256"
+      },
+      "protocolMappers": [
+        {
+          "name": "roles-dans-id-token",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-usermodel-realm-role-mapper",
+          "consentRequired": false,
+          "config": {
+            "multivalued": "true",
+            "userinfo.token.claim": "true",
+            "id.token.claim": "true",
+            "access.token.claim": "true",
+            "claim.name": "roles",
+            "jsonType.label": "String"
+          }
+        }
+      ]
+    },
+    {
+      "clientId": "portail-bibliotheque",
+      "name": "Application demo portail-bibliotheque",
+      "enabled": true,
+      "protocol": "openid-connect",
+      "publicClient": true,
+      "standardFlowEnabled": true,
+      "implicitFlowEnabled": false,
+      "directAccessGrantsEnabled": false,
+      "serviceAccountsEnabled": false,
+      "redirectUris": [
+        "https://${BIBLIO_EXTERNAL_HOSTNAME}/auth/callback"
+      ],
+      "webOrigins": [
+        "https://${BIBLIO_EXTERNAL_HOSTNAME}"
+      ],
+      "attributes": {
+        "pkce.code.challenge.method": "S256"
+      },
+      "protocolMappers": [
+        {
+          "name": "roles-dans-id-token",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-usermodel-realm-role-mapper",
+          "consentRequired": false,
+          "config": {
+            "multivalued": "true",
+            "userinfo.token.claim": "true",
+            "id.token.claim": "true",
+            "access.token.claim": "true",
+            "claim.name": "roles",
+            "jsonType.label": "String"
+          }
+        }
+      ]
+    }
+  ],
+  "users": [
+    {
+      "username": "etudiant",
+      "enabled": true,
+      "emailVerified": true,
+      "firstName": "Sara",
+      "lastName": "Etudiante",
+      "email": "etudiant@demo-universite.example",
+      "credentials": [
+        {
+          "type": "password",
+          "value": "${DEMO_ETUDIANT_PASSWORD}",
+          "temporary": false
+        }
+      ],
+      "realmRoles": [
+        "ETUDIANT"
+      ]
+    },
+    {
+      "username": "professeur",
+      "enabled": true,
+      "emailVerified": true,
+      "firstName": "Riad",
+      "lastName": "Professeur",
+      "email": "professeur@demo-universite.example",
+      "credentials": [
+        {
+          "type": "password",
+          "value": "${DEMO_PROFESSEUR_PASSWORD}",
+          "temporary": false
+        }
+      ],
+      "realmRoles": [
+        "PROFESSEUR"
+      ]
+    },
+    {
+      "username": "admin.universite",
+      "enabled": true,
+      "emailVerified": true,
+      "firstName": "Amine",
+      "lastName": "Administrateur",
+      "email": "admin-universite@demo-universite.example",
+      "credentials": [
+        {
+          "type": "password",
+          "value": "${DEMO_ADMIN_PASSWORD}",
+          "temporary": false
+        }
+      ],
+      "realmRoles": [
+        "ADMIN"
+      ]
+    }
+  ]
+}

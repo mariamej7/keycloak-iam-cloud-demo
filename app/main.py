@@ -25,8 +25,14 @@ CONFIG = {
     'bibliotheque': {'name': 'BiblioCloud', 'port': 8001, 'client_id': 'portail-bibliotheque',
                      'subtitle': 'Bibliothèque numérique du campus'},
 }[VARIANT]
-BASE_URL = f"http://localhost:{CONFIG['port']}"
-KEYCLOAK_URL = os.getenv('KEYCLOAK_URL', 'http://localhost:8080').rstrip('/')
+# Mode local par defaut, HTTPS public sur Render.
+PUBLIC_HOST = os.getenv('RENDER_EXTERNAL_HOSTNAME', '').strip()
+BASE_URL = os.getenv('APP_BASE_URL') or (f'https://{PUBLIC_HOST}' if PUBLIC_HOST else f"http://localhost:{CONFIG['port']}")
+BASE_URL = BASE_URL.rstrip('/')
+KEYCLOAK_HOST = os.getenv('KEYCLOAK_EXTERNAL_HOSTNAME', '').strip()
+KEYCLOAK_URL = (os.getenv('KEYCLOAK_URL') or (f'https://{KEYCLOAK_HOST}' if KEYCLOAK_HOST else 'http://localhost:8080')).rstrip('/')
+OTHER_HOST = os.getenv('OTHER_APP_HOSTNAME', '').strip()
+OTHER_URL = f'https://{OTHER_HOST}' if OTHER_HOST else f"http://localhost:{8001 if VARIANT == 'universite' else 8000}"
 REALM = 'universite'
 SESSION_SECRET = os.getenv('SESSION_SECRET')
 if not SESSION_SECRET:
@@ -40,7 +46,7 @@ app.add_middleware(
     session_cookie=f'session_keycloak_{VARIANT}',
     max_age=3600,
     same_site='lax',
-    https_only=False,  # local HTTP uniquement ; en cloud imposer HTTPS et Secure.
+    https_only=BASE_URL.startswith('https://'),  # Cookie Secure sur Render et HTTP local.
 )
 app.mount('/static', StaticFiles(directory=ROOT / 'app' / 'static'), name='static')
 templates = Jinja2Templates(directory=ROOT / 'app' / 'templates')
@@ -60,6 +66,7 @@ def view(request: Request, name: str, status_code: int = 200, **context):
         'user': user, 'config': CONFIG, 'variant': VARIANT,
         'other_port': 8001 if VARIANT == 'universite' else 8000,
         'other_name': 'BiblioCloud' if VARIANT == 'universite' else 'CampusCloud',
+        'other_url': OTHER_URL, 'cloud_mode': BASE_URL.startswith('https://'),
         **context,
     }, status_code=status_code)
 

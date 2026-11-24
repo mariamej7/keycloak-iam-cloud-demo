@@ -110,3 +110,13 @@ def test_login_still_redirects_when_keycloak_is_ready(monkeypatch):
         response = client.get('/login', follow_redirects=False)
         assert response.status_code == 302
         assert response.headers['location'] == 'https://keycloak.example/login'
+
+def test_oidc_registration_uses_known_endpoints_without_discovery_before_redirect():
+    """Eviter le 502 sur .well-known lorsque Keycloak gratuit est en veille."""
+    from app import main as module
+    client = module.oauth.keycloak
+    assert client._server_metadata_url is None
+    assert client.authorize_url.endswith('/realms/universite/protocol/openid-connect/auth')
+    assert client.access_token_url.endswith('/realms/universite/protocol/openid-connect/token')
+    assert client.server_metadata['jwks_uri'].endswith('/realms/universite/protocol/openid-connect/certs')
+    assert client.server_metadata['issuer'].endswith('/realms/universite')

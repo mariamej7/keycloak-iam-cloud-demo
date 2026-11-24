@@ -55,12 +55,25 @@ app.add_middleware(
 app.mount('/static', StaticFiles(directory=ROOT / 'app' / 'static'), name='static')
 templates = Jinja2Templates(directory=ROOT / 'app' / 'templates')
 
+# Endpoints OIDC declares explicitement pour eviter la requete de discovery
+# pendant le premier clic de connexion. Sur Render Free, Keycloak peut dormir;
+# une redirection navigateur le reveille, contrairement a la requete interne.
+# La validation de l'ID token continue via l'issuer et les cles JWKS publiques.
+OIDC_ISSUER = f'{KEYCLOAK_URL}/realms/{REALM}'
+OIDC_PROTOCOL = f'{OIDC_ISSUER}/protocol/openid-connect'
 oauth = OAuth()
 oauth.register(
     name='keycloak',
     client_id=CONFIG['client_id'],
-    server_metadata_url=f'{KEYCLOAK_URL}/realms/{REALM}/.well-known/openid-configuration',
-    client_kwargs={'scope': 'openid profile email', 'code_challenge_method': 'S256'},
+    authorize_url=f'{OIDC_PROTOCOL}/auth',
+    access_token_url=f'{OIDC_PROTOCOL}/token',
+    jwks_uri=f'{OIDC_PROTOCOL}/certs',
+    issuer=OIDC_ISSUER,
+    client_kwargs={
+        'scope': 'openid profile email',
+        'code_challenge_method': 'S256',
+        'token_endpoint_auth_method': 'none',
+    },
 )
 
 

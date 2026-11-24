@@ -44,30 +44,15 @@ services:
       - key: KC_PROXY_HEADERS
         value: xforwarded
       - key: KC_HOSTNAME
-        fromService:
-          name: iam2026-keycloak-mariam-riad
-          type: web
-          envVarKey: RENDER_EXTERNAL_HOSTNAME
+        value: https://iam2026-keycloak-mariam-riad-ufwv.onrender.com
       - key: JAVA_OPTS_KC_HEAP
         value: '-XX:InitialRAMPercentage=10 -XX:MaxRAMPercentage=45'
       - key: KC_CACHE
         value: local
       - key: CAMPUS_EXTERNAL_HOSTNAME
-        fromService:
-          name: iam2026-campus-mariam-riad
-          type: web
-          envVarKey: RENDER_EXTERNAL_HOSTNAME
+        value: iam2026-campus-mariam-riad-ufwv.onrender.com
       - key: BIBLIO_EXTERNAL_HOSTNAME
-        fromService:
-          name: iam2026-biblio-mariam-riad
-          type: web
-          envVarKey: RENDER_EXTERNAL_HOSTNAME
-      - key: DEMO_ETUDIANT_PASSWORD
-        generateValue: true
-      - key: DEMO_PROFESSEUR_PASSWORD
-        generateValue: true
-      - key: DEMO_ADMIN_PASSWORD
-        generateValue: true
+        value: iam2026-biblio-mariam-riad-ufwv.onrender.com
 
   - type: web
     name: iam2026-campus-mariam-riad
@@ -83,16 +68,12 @@ services:
         value: universite
       - key: SESSION_SECRET
         generateValue: true
+      - key: KEYCLOAK_REALM
+        value: universite-demo-123
       - key: KEYCLOAK_EXTERNAL_HOSTNAME
-        fromService:
-          name: iam2026-keycloak-mariam-riad
-          type: web
-          envVarKey: RENDER_EXTERNAL_HOSTNAME
+        value: iam2026-keycloak-mariam-riad-ufwv.onrender.com
       - key: OTHER_APP_HOSTNAME
-        fromService:
-          name: iam2026-biblio-mariam-riad
-          type: web
-          envVarKey: RENDER_EXTERNAL_HOSTNAME
+        value: iam2026-biblio-mariam-riad-ufwv.onrender.com
 
   - type: web
     name: iam2026-biblio-mariam-riad
@@ -114,10 +95,7 @@ services:
           type: web
           envVarKey: RENDER_EXTERNAL_HOSTNAME
       - key: OTHER_APP_HOSTNAME
-        fromService:
-          name: iam2026-campus-mariam-riad
-          type: web
-          envVarKey: RENDER_EXTERNAL_HOSTNAME
+        value: iam2026-campus-mariam-riad-ufwv.onrender.com
 
 databases:
   - name: iam2026-keycloak-pg

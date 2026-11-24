@@ -1,16 +1,25 @@
-# Contrôle de séparation — projet Keycloak
+# Contrôle de séparation — Démo Keycloak Cloud
 
-- [x] Nouveau dossier : `Keycloak_Demo_Universite_Independant`.
-- [x] Nouveau projet Docker nommé `keycloak-demo-universite-2026`.
-- [x] Base PostgreSQL et volume Docker dédiés à **cette démo seulement**.
-- [x] Nouveau Realm `universite` et deux clients OIDC réservés à la démo.
-- [x] Deux serveurs Python locaux uniquement, aux ports 8000 et 8001.
-- [x] Aucune référence au dépôt ou à l'application PFA dans le code opérationnel.
-- [x] Aucun script ne supprime des conteneurs, volumes ou bases de données existants.
-- [x] Aucune création ou modification exécutée dans GitHub, Render, Vercel ou Supabase.
-- [ ] Tests réels Docker + Keycloak sur l'ordinateur cible (à réaliser).
-- [ ] Déploiement Cloud indépendant (en attente de demande explicite).
+## Ressources de démonstration indépendantes
 
-## Règles avant la démo
+- [x] Dépôt GitHub dédié `mariamej7/keycloak-iam-cloud-demo`.
+- [x] Deux applications propres au projet : CampusCloud et BiblioCloud.
+- [x] Service Cloud Keycloak distinct, hébergé sur Render.
+- [x] Base PostgreSQL Render gratuite **dédiée** à ce projet.
+- [x] Realm Cloud `universite-demo-123`, trois rôles, trois comptes fictifs.
+- [x] Deux clients OpenID Connect indépendants.
+- [x] Déploiements des portails `live` après ajout du bouton `Déconnexion complète`.
+- [x] Connexion et autorisations testées pour les trois profils fictifs.
+- [x] Aucun code opérationnel n'utilise des données d'un autre projet.
+- [x] Aucun service GitHub, Render, Vercel ou base d'un autre projet n'a été modifié pour la démo.
+- [ ] Tester le changement complet d'identité `etudiant` → `admin.universite` dans la fenêtre de démonstration après le dernier déploiement.
+- [ ] Prévoir une migration ou une sauvegarde de la base gratuite avant le 24 décembre 2026.
+- [ ] Remplacer les identifiants de démonstration si le projet est destiné à de vrais utilisateurs.
 
-Le projet doit toujours être lancé dans **son propre dossier extrait**. Ne pas copier les fichiers de la démo dans un dépôt ou un répertoire d'un autre projet. Ne jamais réutiliser les variables d'environnement ni les identifiants d'une application existante.
+## Environnement local distinct
+
+- [x] Projet Docker local `keycloak-demo-universite-2026` indépendant.
+- [x] Realm local `universite` conservé séparément du Realm Cloud.
+- [x] `compose.yaml` utilise ses propres ports, volumes et réseau.
+
+**Règle permanente** : jamais de partage de secrets, de bases de données ou de fichiers avec une autre application.

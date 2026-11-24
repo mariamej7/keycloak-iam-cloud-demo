@@ -1,9 +1,12 @@
 """Deux portails FastAPI reliés au même Keycloak via OIDC (Authorization Code + PKCE)."""
 from __future__ import annotations
 
+import logging
 import os
 from pathlib import Path
 from urllib.parse import urlencode
+
+import httpx
 
 from authlib.integrations.starlette_client import OAuth, OAuthError
 from dotenv import load_dotenv
@@ -93,7 +96,17 @@ async def home(request: Request):
 @app.get('/login')
 async def login(request: Request):
     # Authlib génère le state et le code_verifier PKCE, conservés en session.
-    return await oauth.keycloak.authorize_redirect(request, f'{BASE_URL}/auth/callback')
+    # Sur Render gratuit, Keycloak peut répondre 502 pendant son réveil.
+    # Ne jamais exposer une erreur interne à l'utilisateur : proposer de réessayer.
+    try:
+        return await oauth.keycloak.authorize_redirect(request, f'{BASE_URL}/auth/callback')
+    except httpx.HTTPError as exc:
+        logging.getLogger(__name__).warning(
+            'Keycloak indisponible durant le lancement OIDC (%s)', type(exc).__name__
+        )
+        return view(
+            request, 'auth_wait.html', status_code=503,
+        )
 
 
 @app.get('/auth/callback')

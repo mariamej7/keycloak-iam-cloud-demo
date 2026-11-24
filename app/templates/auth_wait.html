@@ -1,0 +1,19 @@
+{% extends 'base.html' %}
+{% block title %}Connexion en attente{% endblock %}
+{% block content %}
+<section class="panel">
+  <div class="eyebrow"><span class="dot"></span> AUTHENTIFICATION · KEYCLOAK</div>
+  <div class="panel-check">⌛</div>
+  <h1>Keycloak se prépare…</h1>
+  <p>Le serveur d'authentification est temporairement indisponible. Sur notre hébergement
+     gratuit, son redémarrage peut prendre plusieurs minutes. Vos identifiants ne sont pas en cause.</p>
+  <p>Une nouvelle tentative de connexion sera lancée automatiquement dans quelques secondes.</p>
+  <div class="success-line">Service en cours de démarrage · Veuillez patienter</div>
+  <a class="btn btn-main" href="/login">Réessayer maintenant →</a>
+  <a class="btn btn-outline" href="/">Retour à l'accueil</a>
+</section>
+<script>
+  // Recharge uniquement notre route /login, jamais le callback OIDC.
+  window.setTimeout(function () { window.location.assign('/login'); }, 15000);
+</script>
+{% endblock %}

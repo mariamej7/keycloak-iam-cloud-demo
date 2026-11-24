@@ -87,13 +87,12 @@ services:
     envVars:
       - key: APP_VARIANT
         value: bibliotheque
+      - key: KEYCLOAK_REALM
+        value: universite-demo-123
       - key: SESSION_SECRET
         generateValue: true
       - key: KEYCLOAK_EXTERNAL_HOSTNAME
-        fromService:
-          name: iam2026-keycloak-mariam-riad
-          type: web
-          envVarKey: RENDER_EXTERNAL_HOSTNAME
+        value: iam2026-keycloak-mariam-riad-ufwv.onrender.com
       - key: OTHER_APP_HOSTNAME
         value: iam2026-campus-mariam-riad-ufwv.onrender.com
 

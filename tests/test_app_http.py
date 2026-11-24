@@ -79,3 +79,34 @@ def test_home_displays_complete_logout_control_after_authentication():
         response = client.get('/')
         assert response.status_code == 200
         assert 'Déconnexion complète' in response.text
+
+def test_login_shows_waiting_page_instead_of_http_500_when_keycloak_is_sleeping(monkeypatch):
+    import httpx
+    from unittest.mock import AsyncMock
+    from app import main as module
+
+    req = httpx.Request('GET', 'https://keycloak.example/realms/test/.well-known/openid-configuration')
+    resp = httpx.Response(502, request=req)
+    err = httpx.HTTPStatusError('Keycloak temporarily unavailable', request=req, response=resp)
+    monkeypatch.setattr(module.oauth.keycloak, 'authorize_redirect', AsyncMock(side_effect=err))
+    with TestClient(app) as client:
+        response = client.get('/login', follow_redirects=False)
+        assert response.status_code == 503
+        assert 'Keycloak se prépare' in response.text
+        assert 'window.location.assign(\'/login\')' in response.text
+        assert 'Réessayer maintenant' in response.text
+
+
+def test_login_still_redirects_when_keycloak_is_ready(monkeypatch):
+    from unittest.mock import AsyncMock
+    from fastapi.responses import RedirectResponse
+    from app import main as module
+
+    monkeypatch.setattr(
+        module.oauth.keycloak, 'authorize_redirect',
+        AsyncMock(return_value=RedirectResponse('https://keycloak.example/login', status_code=302))
+    )
+    with TestClient(app) as client:
+        response = client.get('/login', follow_redirects=False)
+        assert response.status_code == 302
+        assert response.headers['location'] == 'https://keycloak.example/login'

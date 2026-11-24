@@ -5,7 +5,7 @@ RUN /opt/keycloak/bin/kc.sh build
 
 FROM quay.io/keycloak/keycloak:26.8.2
 COPY --from=builder /opt/keycloak/ /opt/keycloak/
-COPY --chown=1000:0 cloud/keycloak/universite-realm.json /opt/keycloak/data/import/universite-realm.json
+COPY --chown=1000:0 cloud/keycloak/universite-realm.json /opt/keycloak/data/import/universite-demo-123-realm.json
 EXPOSE 10000
 ENTRYPOINT ["/opt/keycloak/bin/kc.sh"]
 CMD ["start", "--optimized", "--import-realm"]

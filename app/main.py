@@ -33,7 +33,7 @@ KEYCLOAK_HOST = os.getenv('KEYCLOAK_EXTERNAL_HOSTNAME', '').strip()
 KEYCLOAK_URL = (os.getenv('KEYCLOAK_URL') or (f'https://{KEYCLOAK_HOST}' if KEYCLOAK_HOST else 'http://localhost:8080')).rstrip('/')
 OTHER_HOST = os.getenv('OTHER_APP_HOSTNAME', '').strip()
 OTHER_URL = f'https://{OTHER_HOST}' if OTHER_HOST else f"http://localhost:{8001 if VARIANT == 'universite' else 8000}"
-REALM = 'universite'
+REALM = os.getenv('KEYCLOAK_REALM', 'universite')
 SESSION_SECRET = os.getenv('SESSION_SECRET')
 if not SESSION_SECRET:
     # Lancer l'appli via le guide : il crée un .env dédié.

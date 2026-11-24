@@ -1,5 +1,5 @@
 {
-  "realm": "universite",
+  "realm": "universite-demo-123",
   "enabled": true,
   "displayName": "Université Démo — Connexion sécurisée",
   "registrationAllowed": false,
@@ -110,7 +110,7 @@
       "credentials": [
         {
           "type": "password",
-          "value": "${DEMO_ETUDIANT_PASSWORD}",
+          "value": "123",
           "temporary": false
         }
       ],
@@ -128,7 +128,7 @@
       "credentials": [
         {
           "type": "password",
-          "value": "${DEMO_PROFESSEUR_PASSWORD}",
+          "value": "123",
           "temporary": false
         }
       ],
@@ -146,7 +146,7 @@
       "credentials": [
         {
           "type": "password",
-          "value": "${DEMO_ADMIN_PASSWORD}",
+          "value": "123",
           "temporary": false
         }
       ],

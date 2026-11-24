@@ -82,6 +82,10 @@ def protected(request: Request, allowed_roles: set[str], title: str, text: str):
 
 @app.get('/', response_class=HTMLResponse)
 async def home(request: Request):
+    # Efface les paramètres de suivi ajoutés par des liens externes (ex. utm_source).
+    # Ne touche jamais aux paramètres OIDC de /login et /auth/callback.
+    if any(key.lower().startswith('utm_') for key in request.query_params.keys()):
+        return RedirectResponse(url='/', status_code=302)
     return view(request, 'home.html')
 
 

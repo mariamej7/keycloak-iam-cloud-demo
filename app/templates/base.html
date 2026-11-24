@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}{{ config.name }}{% endblock %} | Démo Keycloak</title>
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+  <div class="site-shell">
+    <header class="nav">
+      <a href="/" class="brand"><span class="logo">◆</span><span>{{ config.name }}<small>{{ config.subtitle }}</small></span></a>
+      <div class="nav-actions">
+        <a class="nav-link" href="http://localhost:{{ other_port }}/">{{ other_name }} <span aria-hidden="true">↗</span></a>
+        {% if user %}
+          <span class="account-pill">● {{ user.username }}</span>
+          <form method="post" action="/logout"><button class="btn btn-outline" type="submit">Déconnexion locale</button></form>
+        {% else %}
+          <a href="/login" class="btn btn-main">Se connecter</a>
+        {% endif %}
+      </div>
+    </header>
+    <main>{% block content %}{% endblock %}</main>
+    <footer>
+      <span>Projet de démonstration IAM · Keycloak · OIDC · Cloud</span>
+      <span>Environnement local de formation — comptes fictifs</span>
+    </footer>
+  </div>
+</body>
+</html>

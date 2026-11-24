@@ -1,0 +1,10 @@
+{% extends 'base.html' %}
+{% block title %}{{ title }}{% endblock %}
+{% block content %}
+<section class="panel"><div class="eyebrow"><span class="dot"></span> ACCÈS AUTORISÉ · HTTP 200</div>
+<div class="panel-check">✓</div><h1>{{ title }}</h1><p>{{ body }}</p>
+<div class="success-line">Identité vérifiée : <strong>{{ user.name }}</strong></div>
+<div class="success-line">Rôles appliqués : <strong>{{ user.roles|join(', ') }}</strong></div>
+<a class="btn btn-main" href="/">← Retour au tableau de bord</a>
+</section>
+{% endblock %}

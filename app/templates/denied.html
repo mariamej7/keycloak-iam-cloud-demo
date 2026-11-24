@@ -1,0 +1,9 @@
+{% extends 'base.html' %}
+{% block title %}Accès refusé{% endblock %}
+{% block content %}
+<section class="panel denied"><div class="eyebrow red-dot">CONTRÔLE D'ACCÈS · HTTP 403</div>
+<div class="panel-check denial">✕</div><h1>Accès refusé</h1><p>Votre identité est reconnue, mais votre rôle ne permet pas d'ouvrir « {{ title }} ».</p>
+<div class="warning-line">Compte : <strong>{{ user.username }}</strong> · Rôles : <strong>{{ user.roles|join(', ') if user.roles else 'Aucun' }}</strong></div>
+<p class="subnote">Cette restriction est contrôlée côté serveur, pas simplement en masquant un bouton.</p>
+<a class="btn btn-main" href="/">← Retour au tableau de bord</a></section>
+{% endblock %}

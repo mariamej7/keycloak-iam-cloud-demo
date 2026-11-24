@@ -1,0 +1,143 @@
+"""Deux portails FastAPI reliés au même Keycloak via OIDC (Authorization Code + PKCE)."""
+from __future__ import annotations
+
+import os
+from pathlib import Path
+
+from authlib.integrations.starlette_client import OAuth, OAuthError
+from dotenv import load_dotenv
+from fastapi import FastAPI, Request
+from fastapi.responses import HTMLResponse, RedirectResponse
+from fastapi.templating import Jinja2Templates
+from starlette.middleware.sessions import SessionMiddleware
+from starlette.staticfiles import StaticFiles
+
+from app.security import is_authorized, roles_from_claims
+
+ROOT = Path(__file__).resolve().parent.parent
+load_dotenv(ROOT / '.env')
+VARIANT = os.getenv('APP_VARIANT', 'universite').strip().lower()
+if VARIANT not in ('universite', 'bibliotheque'):
+    raise ValueError('APP_VARIANT doit être universite ou bibliotheque.')
+CONFIG = {
+    'universite': {'name': 'CampusCloud', 'port': 8000, 'client_id': 'portail-universite',
+                   'subtitle': 'Portail universitaire sécurisé'},
+    'bibliotheque': {'name': 'BiblioCloud', 'port': 8001, 'client_id': 'portail-bibliotheque',
+                     'subtitle': 'Bibliothèque numérique du campus'},
+}[VARIANT]
+BASE_URL = f"http://localhost:{CONFIG['port']}"
+KEYCLOAK_URL = os.getenv('KEYCLOAK_URL', 'http://localhost:8080').rstrip('/')
+REALM = 'universite'
+SESSION_SECRET = os.getenv('SESSION_SECRET')
+if not SESSION_SECRET:
+    # Lancer l'appli via le guide : il crée un .env dédié.
+    raise RuntimeError('SESSION_SECRET manquant. Copiez .env.example vers .env et définissez un secret.')
+
+app = FastAPI(title=f"{CONFIG['name']} — Keycloak IAM", docs_url=None, redoc_url=None)
+app.add_middleware(
+    SessionMiddleware,
+    secret_key=f'{SESSION_SECRET}-{VARIANT}',
+    session_cookie=f'session_keycloak_{VARIANT}',
+    max_age=3600,
+    same_site='lax',
+    https_only=False,  # local HTTP uniquement ; en cloud imposer HTTPS et Secure.
+)
+app.mount('/static', StaticFiles(directory=ROOT / 'app' / 'static'), name='static')
+templates = Jinja2Templates(directory=ROOT / 'app' / 'templates')
+
+oauth = OAuth()
+oauth.register(
+    name='keycloak',
+    client_id=CONFIG['client_id'],
+    server_metadata_url=f'{KEYCLOAK_URL}/realms/{REALM}/.well-known/openid-configuration',
+    client_kwargs={'scope': 'openid profile email', 'code_challenge_method': 'S256'},
+)
+
+
+def view(request: Request, name: str, status_code: int = 200, **context):
+    user = request.session.get('user')
+    return templates.TemplateResponse(request=request, name=name, context={
+        'user': user, 'config': CONFIG, 'variant': VARIANT,
+        'other_port': 8001 if VARIANT == 'universite' else 8000,
+        'other_name': 'BiblioCloud' if VARIANT == 'universite' else 'CampusCloud',
+        **context,
+    }, status_code=status_code)
+
+
+def protected(request: Request, allowed_roles: set[str], title: str, text: str):
+    user = request.session.get('user')
+    if not user:
+        return RedirectResponse('/login', status_code=303)
+    if not is_authorized(user, allowed_roles):
+        return view(request, 'denied.html', title=title, status_code=403)
+    return view(request, 'section.html', title=title, body=text)
+
+
+@app.get('/', response_class=HTMLResponse)
+async def home(request: Request):
+    return view(request, 'home.html')
+
+
+@app.get('/login')
+async def login(request: Request):
+    # Authlib génère le state et le code_verifier PKCE, conservés en session.
+    return await oauth.keycloak.authorize_redirect(request, f'{BASE_URL}/auth/callback')
+
+
+@app.get('/auth/callback')
+async def auth_callback(request: Request):
+    try:
+        token = await oauth.keycloak.authorize_access_token(request)
+        # Authlib a validé l'ID token OIDC (signature / issuer / audience / nonce).
+        claims = token.get('userinfo')
+        if not claims or not claims.get('sub'):
+            return view(request, 'error.html', message='Identité OIDC invalide.', status_code=401)
+        request.session.clear()
+        request.session['user'] = {
+            'sub': claims['sub'],
+            'username': claims.get('preferred_username', ''),
+            'name': claims.get('name') or claims.get('preferred_username', 'Utilisateur'),
+            'roles': roles_from_claims(claims),
+        }
+        return RedirectResponse('/', status_code=303)
+    except OAuthError:
+        return view(request, 'error.html', message='La connexion a échoué ou a été annulée.', status_code=401)
+    except Exception:
+        # Pas d'affichage de secrets, d'ID token ou de trace dans le navigateur.
+        return view(request, 'error.html', message='Keycloak est peut-être indisponible. Vérifiez sa disponibilité.', status_code=503)
+
+
+@app.post('/logout')
+async def logout(request: Request):
+    # Déconnexion locale seulement ; la session SSO de Keycloak peut rester active.
+    request.session.clear()
+    return RedirectResponse('/', status_code=303)
+
+
+@app.get('/espace/etudiant')
+async def etudiant(request: Request):
+    return protected(request, {'ETUDIANT', 'ADMIN'}, 'Espace étudiant',
+                     'Cours disponibles, calendrier pédagogique et suivi de vos inscriptions.')
+
+
+@app.get('/espace/professeur')
+async def professeur(request: Request):
+    return protected(request, {'PROFESSEUR', 'ADMIN'}, 'Espace professeur',
+                     'Gestion des cours, ressources pédagogiques et espace des évaluations.')
+
+
+@app.get('/espace/admin')
+async def admin(request: Request):
+    return protected(request, {'ADMIN'}, 'Administration',
+                     'Gestion institutionnelle réservée aux administrateurs autorisés.')
+
+
+@app.get('/espace/bibliotheque')
+async def bibliotheque(request: Request):
+    return protected(request, {'ETUDIANT', 'PROFESSEUR', 'ADMIN'}, 'Bibliothèque numérique',
+                     'Catalogue des ouvrages, ressources scientifiques et accès documentaire.')
+
+
+@app.get('/health')
+async def health():
+    return {'status': 'ok', 'application': CONFIG['name'], 'provider': 'Keycloak'}

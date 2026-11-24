@@ -1,0 +1,41 @@
+{% extends 'base.html' %}
+{% block content %}
+<section class="hero">
+  <div class="hero-main">
+    <div class="eyebrow"><span class="dot"></span> IDENTITÉ ET ACCÈS · DÉMONSTRATION</div>
+    <h1>Un accès sécurisé.<br><span>Une seule identité.</span></h1>
+    <p>Deux applications universitaires, un serveur Keycloak et des permissions adaptées à chaque profil.</p>
+    {% if user %}
+      <div class="hero-buttons"><a class="btn btn-main" href="#espaces">Explorer mes espaces <span>→</span></a>
+      <span class="signed">✓ Authentifié via Keycloak</span></div>
+    {% else %}
+      <div class="hero-buttons"><a class="btn btn-main" href="/login">Se connecter avec Keycloak <span>→</span></a>
+      <span class="hint">Connexion OpenID Connect sécurisée</span></div>
+    {% endif %}
+  </div>
+  <div class="auth-card">
+    <div class="auth-card-top"><span class="mini-logo">◆</span><span>IDENTITY PROVIDER</span><span class="live">● DEMO</span></div>
+    <div class="auth-icon">♙</div>
+    <strong>Keycloak IAM</strong>
+    <p>Service central d'authentification</p>
+    <div class="feature"><span>✓</span> Single Sign-On (SSO)</div>
+    <div class="feature"><span>✓</span> Gestion des rôles (RBAC)</div>
+    <div class="feature"><span>✓</span> OpenID Connect + PKCE</div>
+    <div class="auth-card-end">AUTHENTIFICATION CENTRALISÉE</div>
+  </div>
+</section>
+<section id="espaces" class="content-section">
+  <div class="section-head"><div><span class="section-kicker">ESPACES DE TRAVAIL</span><h2>Accès contrôlés par rôle</h2></div>
+  {% if user %}<div class="role-badge">Rôles : {{ user.roles|join(', ') if user.roles else 'Aucun' }}</div>{% endif %}</div>
+  <div class="cards">
+    <a class="space-card" href="/espace/etudiant"><div class="space-icon blue">▤</div><h3>Espace étudiant</h3><p>Cours, emploi du temps et ressources.</p><span class="acl">ETUDIANT · ADMIN</span><span class="space-arrow">→</span></a>
+    <a class="space-card" href="/espace/professeur"><div class="space-icon purple">▥</div><h3>Espace professeur</h3><p>Supports pédagogiques et évaluations.</p><span class="acl">PROFESSEUR · ADMIN</span><span class="space-arrow">→</span></a>
+    <a class="space-card" href="/espace/admin"><div class="space-icon orange">♜</div><h3>Administration</h3><p>Accès aux fonctions de gestion.</p><span class="acl">ADMIN UNIQUEMENT</span><span class="space-arrow">→</span></a>
+  </div>
+</section>
+<section class="bottom-grid">
+  <div class="info-box"><span class="section-kicker">DÉMONSTRATION SSO</span><h3>Deux applications, une connexion</h3><p>Connectez-vous ici, puis ouvrez l'autre application. Tant que la session SSO Keycloak est active, il n'est normalement pas nécessaire de ressaisir le mot de passe.</p>
+  <a href="http://localhost:{{ other_port }}/" class="text-link">Ouvrir {{ other_name }} ↗</a></div>
+  <div class="info-box light"><span class="section-kicker">SÉCURITÉ DES ACCÈS</span><h3>Un refus d'accès est un résultat attendu</h3><p>Connectez-vous avec le compte étudiant, puis essayez l'administration : le serveur répondra avec un statut HTTP 403, même si l'URL a été saisie manuellement.</p></div>
+</section>
+{% endblock %}
